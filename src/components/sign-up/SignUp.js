@@ -75,7 +75,7 @@ export default function SignUp() {
 
           if (response.ok) {
             // Se o token for válido, redirecionar para a página desejada
-            navigate('/pagina-desejada');
+            navigate('/establishments');
           }
         } catch (error) {
           console.error('Erro na validação do token:', error);

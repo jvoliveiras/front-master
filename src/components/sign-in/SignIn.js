@@ -76,7 +76,7 @@ export default function SignIn() {
             .then(response => {
               if (response.ok) {
                 // Se o token for válido, redirecionar para a página desejada
-                navigate('/pagina-desejada');
+                navigate('/establishments');
               }
             })
             .catch(error => {
@@ -130,7 +130,7 @@ export default function SignIn() {
       localStorage.setItem('access_token', result.access_token);
 
       // Redireciona para a página desejada
-      window.location.href = '/pagina-desejada';
+      window.location.href = '/establishments';
 
     } catch (error) {
       console.error('Error:', error);
