@@ -27,6 +27,7 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import  { PostoIcon } from './CustomIcons';
+import Swal from 'sweetalert2';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -67,6 +68,7 @@ export default function Establishments() {
   const [tipoPesquisa, setTipoPesquisa] = React.useState('cep');
   const [estabelecimento, setEstabelecimento] = React.useState('Todos');
   const [inputPesquisa, setInputPesquisa] = React.useState('');
+  const [distance, setDistance] = React.useState(50);
   const navigate = useNavigate();
   const [result, setResult] = React.useState([]); 
   const [loading, setLoading] = React.useState(false); 
@@ -119,27 +121,38 @@ export default function Establishments() {
       setLoading(true);
       setResult([]);
 
-      const data = {
-        codigo_tipo_unidade: estabelecimento,
-        inputPesquisa: inputPesquisa,
-        tipoPesquisa: tipoPesquisa
-      };
-      
-      const response = await fetch('http://localhost:8080/establishments/get_establishments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      if(tipoPesquisa === 'cep'){
+        const data = {
+          cep: inputPesquisa,
+          distance: distance,
+          tipo_estabelecimento: estabelecimento
+        };
 
-      const resultData = await response.json();
-      console.log('Success:', result);
-      setResult(resultData);
+        const response = await fetch('http://localhost:8080/establishments/search_by_cep', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          if (response.status === 500) {
+            const errorData = await response.json();
+            // alert();
+            Swal.fire({
+              title: 'Ops!',
+              text: errorData.detail.slice(22),
+              icon: 'error',
+              confirmButtonText: 'Ok'
+          });
+          }
+        }
+
+        const resultData = await response.json();
+        console.log('Success:', result);
+        setResult(resultData);
+      }
       
     } catch (error) {
       console.error('Error:', error);
@@ -159,28 +172,9 @@ export default function Establishments() {
         <EstablishmentsContainer direction="row" justifyContent="space-between" alignItems="center">
           <Card>
             <Grid container spacing={3}>
-            <Grid size={1.5}> </Grid>
+            <Grid size={1}> </Grid>
 
               <Grid size={2}>
-                {/* <FormControl fullWidth>
-                  <InputLabel id="estado-label">Estado</InputLabel>
-                    <Select
-                      labelId="estado-label"
-                      id="estado"
-                      value={estado}
-                      label="Estado"
-                      onChange={(e) => setEstado(e.target.value)}
-                    >
-                    <MenuItem key={'Todos'} value={'Todos'}>
-                          Todos
-                    </MenuItem>
-                    {estadosBrasileiros.map((estado) => (
-                      <MenuItem key={estado.value} value={estado.value}>
-                        {estado.label}
-                      </MenuItem>
-                    ))}
-                    </Select>
-                </FormControl> */}
                 <FormControl fullWidth>
                   <InputLabel id="tipoPesquisa-label">Tipo Pesquisa</InputLabel>
                     <Select
@@ -206,7 +200,7 @@ export default function Establishments() {
                 </FormControl>
               </Grid>
 
-              <Grid size={3}>
+              <Grid size={2}>
                <TextField
                   id="inputPesquisa"
                   type="text"
@@ -218,6 +212,35 @@ export default function Establishments() {
                   onChange={handleInput}
                   sx={{ ariaLabel: 'inputPesquisa', fontFamily: 'Poppins, sans-serif' }}
                 />
+              </Grid>
+
+              <Grid size={2}>
+              <FormControl fullWidth>
+                <InputLabel id="raio-km-label">Raio de Distância (KM)</InputLabel>
+                <Select
+                labelId="raio-km-label"
+                id="raio-km"
+                value={distance}
+                label="Raio de Distância"
+                onChange={(e) => setDistance(e.target.value)}
+                >
+                  <MenuItem key={10} value={10}>
+                    10
+                  </MenuItem>
+
+                  <MenuItem key={25} value={25}>
+                    25
+                  </MenuItem>
+
+                  <MenuItem key={50} value={50}>
+                    50
+                  </MenuItem>
+
+                  <MenuItem key={100} value={100}>
+                    100
+                  </MenuItem>
+                </Select>
+                </FormControl>
               </Grid>
 
               <Grid size={3}>
@@ -257,11 +280,15 @@ export default function Establishments() {
               </Grid>
 
               {result.map((estabelecimento) => (
-                <Grid size={2}>
-                  <MuiCard sx={{ maxWidth: 345, minHeight: 200, border: '2px solid blue' }}>
+                <Grid key={estabelecimento.id} size={3}>
+                  <MuiCard sx={{ maxWidth: 400, minHeight: 300, border: '2px solid blue' }}>
                     <CardContent>
                       <Typography gutterBottom variant="h5" component="div">
                         {estabelecimento.nome_fantasia}
+                      </Typography>
+
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        CEP: {estabelecimento.codigo_cep_estabelecimento}
                       </Typography>
 
                       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -276,6 +303,15 @@ export default function Establishments() {
                         Contato: {estabelecimento.numero_telefone_estabelecimento}
                       </Typography>
 
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                       ------
+                      </Typography>
+
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        Atendimento: {estabelecimento.descricao_turno_atendimento}
+                      </Typography>
+
+                
                     </CardContent>
         
                   </MuiCard>

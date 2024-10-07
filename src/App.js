@@ -1,7 +1,14 @@
 import logo from './logo.svg';
 import './App.css';
+import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
 
 function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate('/signin');
+  })
   return (
       <div className="App">
         <header className="App-header">
